@@ -1,0 +1,11 @@
+#!ipxe
+
+# Set source URI
+set kernel_url http://192.168.1.66/images/rhel-8.3-x86_64-dvd/images/pxeboot/vmlinuz
+set initrd_url http://192.168.1.66/images/rhel-8.3-x86_64-dvd/images/pxeboot/initrd.img
+set repo http://192.168.1.66/images/rhel-8.3-x86_64-dvd
+
+# Start installer
+kernel ${kernel_url} initrd=initrd.img inst.repo=${repo}
+initrd ${initrd_url}
+boot

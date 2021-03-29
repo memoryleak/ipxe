@@ -1,0 +1,11 @@
+#!ipxe
+
+# Set source URI
+set kernel_url http://192.168.1.66/mirrors/linux/8-stream/BaseOS/x86_64/os/images/pxeboot/vmlinuz
+set initrd_url http://192.168.1.66/mirrors/linux/8-stream/BaseOS/x86_64/os/images/pxeboot/initrd.img
+set repo http://mirror.centos.org/centos/8-stream/BaseOS/x86_64/os
+
+# Start installer
+kernel ${kernel_url} initrd=initrd.img inst.repo=${repo}
+initrd ${initrd_url}
+boot

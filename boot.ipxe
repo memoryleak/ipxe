@@ -1,0 +1,158 @@
+#!ipxe
+echo IP address: ${net0/ip} ; echo Subnet mask: ${net0/netmask}
+#chain fedora.ipxe
+set timeout 5000
+
+# Some menu defaults
+set menu-timeout 5000
+set submenu-timeout ${menu-timeout}
+isset ${menu-default} || set menu-default reload
+
+
+###################### MAIN MENU ####################################
+
+:start
+menu iPXE boot menu for ${net0/ip}
+item --gap --     			------------------------- Linux ------------------------------------------
+item --key f menu-fedora	Fedora
+item --key o menu-centos	CentOS
+item --key u menu-ubuntu	Ubuntu
+item --key r menu-redhat	RedHat
+item --gap --             	------------------------- Advanced options -------------------------------
+item --key z clonezilla    	Clonezilla 2.7.1
+item --key c config       	Configure settings
+item shell                	Drop to iPXE shell
+item reboot               	Reboot computer
+item reload               	Reload configuration
+item
+item --key x exit         	Exit iPXE and continue BIOS boot
+choose --timeout ${menu-timeout} --default ${menu-default} selected || goto cancel
+set menu-timeout 0
+goto ${selected}
+
+
+:menu-fedora
+menu Fedora
+item f33     	  		Install Fedora 33 Everything
+item f33-server   		Install Fedora 33 Server
+#item f33-ws       		Install Fedora 33 Workstation
+#item f33-kde       	Install Fedora 33 KDE
+item
+item --key 0x08 back      Back to top menu...
+iseq ${menu-default} menu-live && isset ${submenu-default} && goto menu-live-timed ||
+choose selected && goto ${selected} || goto start
+:menu-live-timed
+
+:menu-centos
+menu CentOS
+item centos7       		Install CentOS 7
+item centos8-stream   	Install CentOS 8 Stream
+item
+item --key 0x08 back      Back to top menu...
+iseq ${menu-default} menu-live && isset ${submenu-default} && goto menu-live-timed ||
+choose selected && goto ${selected} || goto start
+:menu-live-timed
+
+:menu-ubuntu
+menu Ubuntu
+item ubuntu1804-server 		Install Ubuntu 18.04 Server
+item ubuntu1804-desktop   	Install Ubuntu 18.04 Desktop
+item ubuntu2004-server 		Install Ubuntu 20.04 Server
+item ubuntu2004-desktop   	Install Ubuntu 20.04 Desktop
+item
+item --key 0x08 back      Back to top menu...
+iseq ${menu-default} menu-live && isset ${submenu-default} && goto menu-live-timed ||
+choose selected && goto ${selected} || goto start
+:menu-live-timed
+
+
+:menu-redhat
+menu RedHat
+item rhel-7 		Install RHEL 7
+item rhel-8   		Install RHEL 8
+item
+item --key 0x08 back      Back to top menu...
+iseq ${menu-default} menu-live && isset ${submenu-default} && goto menu-live-timed ||
+choose selected && goto ${selected} || goto start
+:menu-live-timed
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+
+:shell
+echo Type 'exit' to get the back to the menu
+shell
+set menu-timeout 0
+set submenu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+
+:config
+config
+goto start
+
+:reload
+chain --replace boot.ipxe
+boot
+goto start
+
+:back
+set submenu-timeout 0
+clear submenu-default
+goto start
+
+############ MAIN MENU ITEMS ############
+
+:f33
+set distribution fedora
+set releasever 33
+set variant Everything
+chain --replace fedora.ipxe
+goto start
+
+:f33-server
+set distribution fedora
+set releasever 33
+set variant Server
+chain --replace fedora.ipxe
+goto start
+
+:f33-ws
+echo Live ISOs are not implemented yet
+goto start
+
+:f33-kde
+echo Live ISOs are not implemented yet
+goto start
+
+:centos7
+chain --replace centos7.ipxe
+goto start
+
+:centos8-stream
+chain --replace centos8-stream.ipxe
+goto start
+
+:rhel-7
+chain --replace rhel7.ipxe
+goto start
+
+:rhel-8
+chain --replace rhel8.ipxe
+goto start
+
+# Advanced
+:clonezilla
+kernel http://192.168.1.66/images/Clonezilla/live/vmlinuz boot=live config noswap nolocales edd=on nomodeset vga=788 nosplash noprompt keyboard-layouts=ch fetch=http://192.168.1.66/images/Clonezilla/live/filesystem.squashfs
+initrd http://192.168.1.66/images/Clonezilla/live/initrd.img
+boot
+goto start
